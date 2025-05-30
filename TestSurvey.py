@@ -36,7 +36,7 @@ if not st.session_state.selesai:
             st.session_state.selesai = True
 
         # Hindari rerun paksa — Streamlit akan refresh otomatis
-        st.experimental_rerun()
+        # st.experimental_rerun()
 
 else:
     st.success("✅ Survei selesai!")
