@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import csv
 import os
 
-# Daftar pertanyaan
+# Pertanyaan survei
 pertanyaan_list = [
     "1. Apakah bumi itu bulat?",
     "2. Apakah Python adalah bahasa pemrograman?",
@@ -13,34 +13,34 @@ pertanyaan_list = [
 
 pilihan_jawaban = ["Benar", "Salah", "Tidak tahu"]
 
-# Inisialisasi session_state
+# Inisialisasi session state
 if "current_question" not in st.session_state:
     st.session_state.current_question = 0
     st.session_state.jawaban_respondens = []
-    st.session_state.hasil_survei = {jawaban: 0 for jawaban in pilihan_jawaban}
+    st.session_state.hasil_survei = {j: 0 for j in pilihan_jawaban}
     st.session_state.selesai = False
 
-st.title("📝 Survei Pendapat Sederhana")
-
-# Fungsi untuk memproses jawaban
-def proses_jawaban(jawaban):
-    st.session_state.jawaban_respondens.append(jawaban)
-    st.session_state.hasil_survei[jawaban] += 1
-    st.session_state.current_question += 1
-    if st.session_state.current_question >= len(pertanyaan_list):
-        st.session_state.selesai = True
+st.title("📝 Survei Pendapat")
 
 if not st.session_state.selesai:
-    q_index = st.session_state.current_question
-    st.subheader(pertanyaan_list[q_index])
-    jawaban = st.radio("Pilih jawaban Anda:", pilihan_jawaban, key=f"radio_{q_index}")
+    index = st.session_state.current_question
+    st.subheader(pertanyaan_list[index])
+    jawaban = st.radio("Pilih jawaban Anda:", pilihan_jawaban, key=f"q_{index}")
     
-    if st.button("Kirim Jawaban"):
-        proses_jawaban(jawaban)
-        st.query_params["refreshed"] = "true"  # pengganti deprecated method
-        st._rerun()  # rerun aman setelah input
+    if st.button("Kirim Jawaban", key=f"submit_{index}"):
+        st.session_state.jawaban_respondens.append(jawaban)
+        st.session_state.hasil_survei[jawaban] += 1
+        st.session_state.current_question += 1
+
+        if st.session_state.current_question >= len(pertanyaan_list):
+            st.session_state.selesai = True
+
+        # Hindari rerun paksa — Streamlit akan refresh otomatis
+        st.experimental_rerun()
+
 else:
     st.success("✅ Survei selesai!")
+    st.write("**Rekap Jawaban:**")
     total = sum(st.session_state.hasil_survei.values())
     for pilihan, jumlah in st.session_state.hasil_survei.items():
         persen = (jumlah / total) * 100 if total > 0 else 0
@@ -53,15 +53,16 @@ else:
     ax.set_title("Hasil Survei")
     st.pyplot(fig)
 
-    # Simpan ke CSV
+    # Simpan ke file
     filename = "hasil_survei.csv"
-    with open(filename, mode='w', newline='') as file:
-        writer = csv.writer(file)
+    with open(filename, mode='w', newline='') as f:
+        writer = csv.writer(f)
         writer.writerow(["Pertanyaan", "Jawaban"])
         for pertanyaan, jawaban in zip(pertanyaan_list, st.session_state.jawaban_respondens):
             writer.writerow([pertanyaan, jawaban])
-    st.success(f"Hasil disimpan ke: `{os.path.abspath(filename)}`")
+    st.success(f"Hasil disimpan sebagai `{filename}`")
 
-    if st.button("🔄 Ulangi Survei"):
+    if st.button("🔁 Ulangi Survei"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
+        st.experimental_rerun()
