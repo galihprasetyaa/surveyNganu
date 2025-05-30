@@ -37,8 +37,8 @@ if not st.session_state.selesai:
     
     if st.button("Kirim Jawaban"):
         proses_jawaban(jawaban)
-        st.experimental_set_query_params(refreshed="true")  # agar komponen UI reset
-        st._rerun()  # rerun aman di event handler
+        st.query_params["refreshed"] = "true"  # pengganti deprecated method
+        st._rerun()  # rerun aman setelah input
 else:
     st.success("✅ Survei selesai!")
     total = sum(st.session_state.hasil_survei.values())
@@ -53,7 +53,7 @@ else:
     ax.set_title("Hasil Survei")
     st.pyplot(fig)
 
-    # Simpan ke Excel
+    # Simpan ke CSV
     filename = "hasil_survei.csv"
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
